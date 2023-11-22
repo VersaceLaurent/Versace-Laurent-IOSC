@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Support Checker</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
+
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: white;
+            color: #1a1a1a;
+        }
+
+        header {
+            color: #1a1a1a;
+            padding: 1em;
+            text-align: center;
+        }
+
+        main {
+            max-width: 600px;
+            margin: 2em auto;
+            padding: 1em;
+            background-color: white;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5em;
+        }
+
+        #infoText {
+            font-size: 14px;
+            margin-bottom: 1em;
+        }
+
+        input {
+            width: calc(100% - 2em);
+            padding: 0.5em;
+            margin-bottom: 1em;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: #666;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #result {
+            margin-top: 1em;
+            font-weight: bold;
+        }
+
+        /* Styles for text colors */
+        .red-text {
+            color: red;
+        }
+
+        .green-text {
+            color: green;
+        }
+
+        /* Styles for pop-up box */
+        #popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 1em;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        #popup.okay {
+            background-color: green;
+            color: white;
+        }
+
+        #popup.not-okay {
+            background-color: red;
+            color: white;
+        }
+
+        #overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+        }
+    </style>
+
+    <!-- Include jQuery library -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>VersaceLaurent's Israeli Occupation Support Checker</h1>
+    </header>
+
+    <main>
+        <div id="infoText">Informing you about daily consumer companies that support the Israeli occupation.</div>
+        <label for="companyName">Enter Company Name:</label>
+        <input type="text" id="companyName" list="companyList" placeholder="Enter company name here">
+
+        <!-- Datalist for autofill suggestions -->
+        <datalist id="companyList">
+            <!-- Loop through the supported companies and create options -->
+            <?php foreach ($supportedCompanies as $company): ?>
+                <option value="<?= $company; ?>">
+            <?php endforeach; ?>
+        </datalist>
+
+        <button onclick="checkSupport()">Click here to check!</button>
+
+        <div id="result"></div>
+
+        <!-- Pop-up box and overlay -->
+        <div id="overlay"></div>
+        <div id="popup"></div>
+    </main>
+
+    <script>
+        // List of supported companies
+        const supportedCompanies = [
+            'Airbnb', 'JCB', 'Booking.com', 'Egis Rail', 'Expedia Group',
+            'Opodo', 'Tahal Group International', 'TripAdvisor', 'Paramount Pictures', 'Disney',
+            'Pepsi', 'Coca-Cola', 'Afikim', 'American Israeli Gas Corporation',
+            'Amir Marketing and Investments in Agriculture', 'Amos Hadar Properties and Investments',
+            'Angel Bakeries', 'Archivists', 'Ariel Properties Group', 'Ashtrom Industries',
+            'Ashtrom Properties', 'Avgol Industries 1953', 'Bank Hapoalim', 'Bank Leumi',
+            'Bank of Jerusalem', 'Beit Haarchiv', 'Bezeq', 'C Mer Industries', 'Café Café Israel',
+            'Caliber 3', 'Cellcom', 'Cherriessa', 'Chish Nofei Israel', 'Citadis Israel', 'Comasco',
+            'Darban Investments', 'Delek Group', 'Delta Israel', 'Dor Alon Energy in Israel 1988',
+            'Egged', 'Energix Renewable Energies', 'EPR Systems', 'Extal', 'Field Produce',
+            'Field Produce Marketing', 'First International Bank of Israel', 'Galshan Shvakim',
+            'General Mills', 'Hadiklaim Israel Date Growers Cooperative', 'Hot Mobile',
+            'Hot Telecommunications Systems', 'Industrial Buildings Corporation (Mivne Real Estate)',
+            'Israel Discount Bank', 'Israel Railways Corporation', 'Italek', 'Jerusalem Economy',
+            'Kavim Public Transportation', 'Lipski Installation and Sanitation', 'Matrix IT',
+            'Mayer Davidov Garages', 'Mekorot Water Company', 'Mercantile Discount Bank', 'Merkavim',
+            'Bank Mizrahi-Tefahot', 'Modi’in Ezrachi Group', 'Mordechai Aviv Taasiot Beniyah 1973',
+            'Motorola Solutions Israel', 'Municipal Bank', 'Naaman Group', 'Nof Yam Security',
+            'Ofertex Industries 1997', 'Bank Otsar Ha-Hayal', 'Partner Communications Company',
+            'Paz Oil Company', 'Pelegas', 'Pelephone', 'Proffimat', 'Rami Levy Chain Stores Hashikma Marketing 2006',
+            'Rami Levy Hashikma Marketing', 'Re/Max Israel', 'Shalgal Food', 'Shapir Engineering and Industry',
+            'Shufersal', 'Sonol', 'Superbus', 'Supergum Industries 1969', 'Twitoplast', 'Unikowsky Maoz',
+            'Yes', 'Zakai Agricultural Know-how and inputs', 'ZF Development and Construction', 'ZMH Hammermand',
+            'Zorganika', 'Zriha Hlavin Industries', 'Alstom', 'Altice Europe', 'Booking Holdings',
+            'eDreams ODIGEO', 'Egis Group, France', 'General Mills', 'Indorama Ventures', 'Kardan',
+            'Motorola Solutions', 'Greenkote, United Kingdom', 'Alon Blue Square', 'Amnon Mesilot',
+            'Ashtrom Group', 'Brand Industries', 'Delta Galil Industries', 'Electra, Israel',
+            'Export Investment Company', 'Hadar Group', 'Hamat Group', 'Mayer’s Cars and Trucks Company',
+            'Natoon Group', 'Villar International'
+        ];
+
+        // Get input element and datalist
+        var inputElement = document.getElementById('companyName');
+        var dataList = document.getElementById('companyList');
+
+        // Create a new 'input' event
+        inputElement.addEventListener('input', function (event) {
+            var inputText = event.target.value.toLowerCase();
+            
+            // Clear previous options
+            dataList.innerHTML = '';
+
+            // Filter supported companies based on user input
+            var filteredCompanies = supportedCompanies.filter(function (company) {
+                return company.toLowerCase().includes(inputText);
+            });
+
+            // Create new options based on the filtered companies
+            filteredCompanies.forEach(function (company) {
+                var option = document.createElement('option');
+                option.value = company;
+                dataList.appendChild(option);
+            });
+        });
+
+        function checkSupport() {
+            var companyName = inputElement.value;
+            var resultElement = document.getElementById('result');
+            var popupElement = document.getElementById('popup');
+            var overlayElement = document.getElementById('overlay');
+
+            // Check if the user has entered a company name
+            if (!companyName) {
+                resultElement.innerHTML = `<span class="black-text">Error: Please enter a company's name into the box.</span>`;
+                popupElement.innerHTML = `<span class="black-text">Error: Please enter a company's name into the box.</span>`;
+                popupElement.className = 'not-okay';
+            } else {
+                // Check if the entered company is in the list of supported companies
+                if (supportedCompanies.includes(companyName)) {
+                    resultElement.innerHTML = `<span class="red-text">${companyName} supports the Israeli occupation.</span>`;
+                    popupElement.innerHTML = `<span class="white-text">${companyName} supports the Israeli occupation.</span>`;
+                    popupElement.className = 'not-okay';
+                } else {
+                    resultElement.innerHTML = `<span class="green-text">${companyName} does not support the Israeli occupation.</span>`;
+                    popupElement.innerHTML = `<span class="white-text">${companyName} does not support the Israeli occupation.</span>`;
+                    popupElement.className = 'okay';
+                }
+            }
+
+            // Display the overlay and fade in the pop-up box
+            overlayElement.style.display = 'block';
+            popupElement.style.display = 'block';
+            $(popupElement).fadeIn();
+
+            // Close the pop-up box when the "Okay" button is clicked
+            $('#popup').click(function () {
+                $(popupElement).fadeOut();
+                overlayElement.style.display = 'none';
+            });
+        }
+    </script>
+
+</body>
+</html>
